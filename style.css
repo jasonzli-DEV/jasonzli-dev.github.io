@@ -1,0 +1,123 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Courier New', monospace;
+    background-color: #f7f7f7;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    color: #535353;
+}
+
+.game-container {
+    background-color: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    max-width: 850px;
+    width: 100%;
+}
+
+.game-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.game-header h1 {
+    font-size: 24px;
+    color: #535353;
+}
+
+.score-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.score-label, .high-score-label {
+    color: #888;
+}
+
+#score, #high-score {
+    color: #535353;
+    font-family: monospace;
+    letter-spacing: 1px;
+}
+
+.game-area {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    background-color: #f7f7f7;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+}
+
+#gameCanvas {
+    background-color: #f7f7f7;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.start-screen, .game-over {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    background-color: rgba(247, 247, 247, 0.95);
+    padding: 20px;
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+    z-index: 10;
+}
+
+.start-screen h2, .game-over h2 {
+    font-size: 24px;
+    margin-bottom: 10px;
+    color: #535353;
+}
+
+.start-screen p, .game-over p {
+    font-size: 14px;
+    color: #888;
+}
+
+.hidden {
+    display: none;
+}
+
+/* Responsive design */
+@media (max-width: 900px) {
+    .game-container {
+        margin: 10px;
+        padding: 15px;
+    }
+    
+    #gameCanvas {
+        width: 100%;
+        max-width: 800px;
+        height: auto;
+    }
+    
+    .game-header {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .score-container {
+        gap: 15px;
+    }
+}
