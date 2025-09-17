@@ -30,7 +30,7 @@ class DinosaurGame {
             isJumping: false,
             jumpSpeed: 0,
             gravity: 1.2,
-            maxJumpHeight: 100
+            maxJumpHeight: 150
         };
         
         // Obstacles
@@ -57,11 +57,11 @@ class DinosaurGame {
             let canvasWidth = Math.min(containerWidth - 40, maxWidth);
             canvasWidth = Math.max(canvasWidth, minWidth);
             
-            // Maintain aspect ratio (4:1 roughly)
-            const canvasHeight = Math.max(200, canvasWidth / 5);
+            // Maintain aspect ratio (3:1 roughly) for bigger canvas
+            const canvasHeight = Math.max(300, canvasWidth / 3);
             
             this.canvas.width = canvasWidth;
-            this.canvas.height = Math.min(canvasHeight, 300); // Max height 300px
+            this.canvas.height = Math.min(canvasHeight, 500); // Max height 500px (increased from 300px)
             
             // Update ground position
             this.groundY = this.canvas.height - 40;
@@ -143,8 +143,14 @@ class DinosaurGame {
     }
     
     createObstacle() {
-        // Random obstacle type: cactus or bird
-        const obstacleTypes = ['cactus', 'bird'];
+        // Determine available obstacle types based on score
+        let obstacleTypes = ['cactus'];
+        
+        // Birds only start appearing after score reaches 200
+        if (this.score >= 200) {
+            obstacleTypes.push('bird');
+        }
+        
         const type = obstacleTypes[Math.floor(Math.random() * obstacleTypes.length)];
         
         let obstacle;
@@ -176,11 +182,11 @@ class DinosaurGame {
     }
     
     updateObstacles() {
-        // Create new obstacles with more varied timing
+        // Create new obstacles with more frequent timing
         this.obstacleTimer++;
-        // Increased randomness in obstacle spacing (100-500px apart)
-        const minDistance = 100 + Math.random() * 100; // 100-200px
-        const maxDistance = 300 + Math.random() * 200; // 300-500px
+        // Reduced randomness in obstacle spacing for more frequent obstacles (50-300px apart)
+        const minDistance = 50 + Math.random() * 50; // 50-100px
+        const maxDistance = 150 + Math.random() * 150; // 150-300px
         const nextObstacleDistance = minDistance + Math.random() * (maxDistance - minDistance);
         
         if (this.obstacleTimer > nextObstacleDistance) {
