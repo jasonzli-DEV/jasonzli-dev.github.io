@@ -7,6 +7,9 @@ class DinosaurGame {
         this.gameOverScreen = document.getElementById('gameOverScreen');
         this.startScreen = document.getElementById('startScreen');
         
+        // Set up responsive canvas
+        this.setupCanvas();
+        
         // Game state
         this.gameState = 'start'; // 'start', 'playing', 'gameOver'
         this.gameSpeed = 6;
@@ -40,6 +43,40 @@ class DinosaurGame {
         this.clouds = [];
         
         this.init();
+    }
+    
+    setupCanvas() {
+        // Make canvas responsive
+        const resizeCanvas = () => {
+            const container = this.canvas.parentElement;
+            const containerWidth = container.clientWidth;
+            const maxWidth = 1200; // Maximum canvas width
+            const minWidth = 600;  // Minimum canvas width
+            
+            // Calculate responsive width
+            let canvasWidth = Math.min(containerWidth - 40, maxWidth);
+            canvasWidth = Math.max(canvasWidth, minWidth);
+            
+            // Maintain aspect ratio (4:1 roughly)
+            const canvasHeight = Math.max(200, canvasWidth / 5);
+            
+            this.canvas.width = canvasWidth;
+            this.canvas.height = Math.min(canvasHeight, 300); // Max height 300px
+            
+            // Update ground position
+            this.groundY = this.canvas.height - 40;
+            
+            // Update dinosaur position if game is reset
+            if (this.dino) {
+                this.dino.y = this.groundY - this.dino.height;
+            }
+        };
+        
+        // Initial resize
+        resizeCanvas();
+        
+        // Listen for window resize
+        window.addEventListener('resize', resizeCanvas);
     }
     
     init() {
@@ -89,6 +126,13 @@ class DinosaurGame {
             this.dino.jumpSpeed += this.dino.gravity;
             this.dino.y += this.dino.jumpSpeed;
             
+            // Prevent jumping too high (going off screen)
+            const maxJumpY = this.groundY - this.dino.height - this.dino.maxJumpHeight;
+            if (this.dino.y < maxJumpY) {
+                this.dino.y = maxJumpY;
+                this.dino.jumpSpeed = 0; // Stop upward movement
+            }
+            
             // Land on ground
             if (this.dino.y >= this.groundY - this.dino.height) {
                 this.dino.y = this.groundY - this.dino.height;
@@ -99,20 +143,47 @@ class DinosaurGame {
     }
     
     createObstacle() {
-        const obstacle = {
-            x: this.canvas.width,
-            y: this.groundY - 30,
-            width: 20,
-            height: 30,
-            type: 'cactus'
-        };
+        // Random obstacle type: cactus or bird
+        const obstacleTypes = ['cactus', 'bird'];
+        const type = obstacleTypes[Math.floor(Math.random() * obstacleTypes.length)];
+        
+        let obstacle;
+        if (type === 'cactus') {
+            // Vary cactus height and width for more randomness
+            const width = 15 + Math.random() * 15; // 15-30px width
+            const height = 25 + Math.random() * 20; // 25-45px height
+            obstacle = {
+                x: this.canvas.width,
+                y: this.groundY - height,
+                width: width,
+                height: height,
+                type: 'cactus'
+            };
+        } else {
+            // Bird obstacle - flies at various heights
+            const birdHeight = 15 + Math.random() * 10; // 15-25px height
+            const flyHeight = 20 + Math.random() * 60; // 20-80px above ground
+            obstacle = {
+                x: this.canvas.width,
+                y: this.groundY - this.dino.height - flyHeight,
+                width: 25,
+                height: birdHeight,
+                type: 'bird',
+                wingOffset: 0 // For wing animation
+            };
+        }
         this.obstacles.push(obstacle);
     }
     
     updateObstacles() {
-        // Create new obstacles
+        // Create new obstacles with more varied timing
         this.obstacleTimer++;
-        if (this.obstacleTimer > this.minObstacleDistance + Math.random() * (this.maxObstacleDistance - this.minObstacleDistance)) {
+        // Increased randomness in obstacle spacing (100-500px apart)
+        const minDistance = 100 + Math.random() * 100; // 100-200px
+        const maxDistance = 300 + Math.random() * 200; // 300-500px
+        const nextObstacleDistance = minDistance + Math.random() * (maxDistance - minDistance);
+        
+        if (this.obstacleTimer > nextObstacleDistance) {
             this.createObstacle();
             this.obstacleTimer = 0;
         }
@@ -120,6 +191,11 @@ class DinosaurGame {
         // Update existing obstacles
         for (let i = this.obstacles.length - 1; i >= 0; i--) {
             this.obstacles[i].x -= this.gameSpeed;
+            
+            // Update bird wing animation
+            if (this.obstacles[i].type === 'bird') {
+                this.obstacles[i].wingOffset = (this.obstacles[i].wingOffset + 1) % 20;
+            }
             
             // Remove off-screen obstacles
             if (this.obstacles[i].x + this.obstacles[i].width < 0) {
@@ -237,12 +313,30 @@ class DinosaurGame {
     drawObstacles() {
         this.ctx.fillStyle = '#535353';
         for (let obstacle of this.obstacles) {
-            // Draw cactus
-            this.ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
-            
-            // Add some details to make it look more like a cactus
-            this.ctx.fillRect(obstacle.x + 5, obstacle.y - 5, 3, 8);
-            this.ctx.fillRect(obstacle.x + 12, obstacle.y + 5, 3, 8);
+            if (obstacle.type === 'cactus') {
+                // Draw cactus
+                this.ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+                
+                // Add some details to make it look more like a cactus
+                if (obstacle.width > 20) {
+                    this.ctx.fillRect(obstacle.x + 5, obstacle.y - 5, 3, 8);
+                    this.ctx.fillRect(obstacle.x + obstacle.width - 8, obstacle.y + 5, 3, 8);
+                }
+            } else if (obstacle.type === 'bird') {
+                // Draw bird body
+                this.ctx.fillRect(obstacle.x + 5, obstacle.y + 5, 15, 8);
+                
+                // Draw bird head
+                this.ctx.fillRect(obstacle.x + 18, obstacle.y + 3, 7, 6);
+                
+                // Draw animated wings
+                const wingFlap = obstacle.wingOffset < 10 ? 2 : -2;
+                this.ctx.fillRect(obstacle.x + 2, obstacle.y + 7 + wingFlap, 8, 3);
+                this.ctx.fillRect(obstacle.x + 15, obstacle.y + 7 + wingFlap, 8, 3);
+                
+                // Draw beak
+                this.ctx.fillRect(obstacle.x + 25, obstacle.y + 5, 2, 2);
+            }
         }
     }
     
