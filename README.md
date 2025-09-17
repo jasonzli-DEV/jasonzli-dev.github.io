@@ -14,6 +14,10 @@ A recreation of the Google Chrome "No Internet" dinosaur game (T-Rex Runner) bui
 - **Frozen Game Over**: Clouds freeze during game over state for better visual feedback
 - **Responsive Design**: Works on desktop and mobile devices
 - **Authentic Look**: Enhanced recreation of the original Chrome game aesthetic
+- **🎮 CrazyGames Integration**: 
+  - **Ad-Based Revives**: Watch ads to continue playing after game over (up to 3 revives per session)
+  - **Cloud High Score Storage**: High scores are saved using CrazyGames data storage with localStorage fallback
+  - **Cross-Platform Sync**: Your high scores sync across devices when playing on CrazyGames platform
 
 ## How to Play
 
@@ -23,7 +27,8 @@ A recreation of the Google Chrome "No Internet" dinosaur game (T-Rex Runner) bui
 4. Avoid hitting the cacti and flying birds to keep playing
 5. Birds start appearing at 1000 points for added challenge
 6. Obstacles get closer together as your score increases
-5. Try to beat your high score!
+7. Try to beat your high score!
+8. **On CrazyGames**: When you die, click "Watch Ad to Continue" to revive and keep playing (up to 3 times per session)
 
 ## Game Controls
 
@@ -34,9 +39,11 @@ A recreation of the Google Chrome "No Internet" dinosaur game (T-Rex Runner) bui
 
 - Built with vanilla JavaScript (no external dependencies)
 - HTML5 Canvas for smooth 60fps animations
-- Local storage for persistent high score tracking
+- CrazyGames SDK v3 integration for enhanced platform features
+- Local storage for persistent high score tracking with cloud sync fallback
 - Responsive CSS design
 - Object-oriented game architecture
+- Progressive web app compatible
 
 ## Files
 

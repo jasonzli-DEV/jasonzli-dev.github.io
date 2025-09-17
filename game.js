@@ -6,6 +6,14 @@ class DinosaurGame {
         this.highScoreElement = document.getElementById('high-score');
         this.gameOverScreen = document.getElementById('gameOverScreen');
         this.startScreen = document.getElementById('startScreen');
+        this.reviveButton = document.getElementById('reviveButton');
+        this.reviveOption = document.getElementById('reviveOption');
+        this.noReviveText = document.getElementById('noReviveText');
+        
+        // CrazyGames SDK state
+        this.crazyGamesInitialized = false;
+        this.revivesUsed = 0;
+        this.maxRevives = 3; // Allow up to 3 revives per game session
         
         // Set up responsive canvas
         this.setupCanvas();
@@ -14,7 +22,7 @@ class DinosaurGame {
         this.gameState = 'start'; // 'start', 'playing', 'gameOver'
         this.gameSpeed = 6;
         this.score = 0;
-        this.highScore = localStorage.getItem('dinoHighScore') || 0;
+        this.highScore = 0; // Will be loaded from CrazyGames or localStorage fallback
         
         // Ground
         this.groundY = this.canvas.height - 40;
@@ -42,7 +50,64 @@ class DinosaurGame {
         // Clouds (background decoration)
         this.clouds = [];
         
-        this.init();
+        this.initCrazyGames().then(() => {
+            this.init();
+        });
+    }
+    
+    async initCrazyGames() {
+        try {
+            // Check if CrazyGames SDK is available
+            if (typeof window.CrazyGames !== 'undefined') {
+                await window.CrazyGames.SDK.init();
+                this.crazyGamesInitialized = true;
+                console.log('CrazyGames SDK initialized successfully');
+                
+                // Load high score from CrazyGames
+                await this.loadHighScore();
+                
+                // Set up game data saving
+                window.CrazyGames.SDK.game.sdkGameLoadingStart();
+                window.CrazyGames.SDK.game.sdkGameLoadingStop();
+            } else {
+                console.warn('CrazyGames SDK not available, using fallback');
+                this.loadHighScoreFallback();
+            }
+        } catch (error) {
+            console.error('Failed to initialize CrazyGames SDK:', error);
+            this.loadHighScoreFallback();
+        }
+    }
+    
+    async loadHighScore() {
+        try {
+            if (this.crazyGamesInitialized) {
+                const data = await window.CrazyGames.SDK.data.getItem('dinoHighScore');
+                this.highScore = data ? parseInt(data) : 0;
+            }
+        } catch (error) {
+            console.error('Failed to load high score from CrazyGames:', error);
+            this.loadHighScoreFallback();
+        }
+    }
+    
+    loadHighScoreFallback() {
+        this.highScore = localStorage.getItem('dinoHighScore') || 0;
+    }
+    
+    async saveHighScore() {
+        try {
+            if (this.crazyGamesInitialized) {
+                await window.CrazyGames.SDK.data.setItem('dinoHighScore', this.highScore.toString());
+            } else {
+                // Fallback to localStorage
+                localStorage.setItem('dinoHighScore', this.highScore);
+            }
+        } catch (error) {
+            console.error('Failed to save high score:', error);
+            // Fallback to localStorage
+            localStorage.setItem('dinoHighScore', this.highScore);
+        }
     }
     
     setupCanvas() {
@@ -83,6 +148,7 @@ class DinosaurGame {
         this.updateHighScore();
         this.createClouds();
         this.setupEventListeners();
+        this.setupReviveButton();
         this.gameLoop();
     }
     
@@ -97,6 +163,60 @@ class DinosaurGame {
         this.canvas.addEventListener('click', () => {
             this.handleJump();
         });
+    }
+    
+    setupReviveButton() {
+        this.reviveButton.addEventListener('click', () => {
+            this.watchAdForRevive();
+        });
+    }
+    
+    async watchAdForRevive() {
+        try {
+            if (this.crazyGamesInitialized && this.revivesUsed < this.maxRevives) {
+                // Disable the button during ad
+                this.reviveButton.disabled = true;
+                this.reviveButton.textContent = 'Loading Ad...';
+                
+                // Request rewarded ad from CrazyGames
+                await window.CrazyGames.SDK.ad.requestAd('rewarded');
+                
+                // If ad was successful, revive the player
+                this.revivePlayer();
+            } else {
+                // No more revives available or SDK not available
+                this.showNoReviveMessage();
+            }
+        } catch (error) {
+            console.error('Failed to show rewarded ad:', error);
+            // Re-enable button and show error
+            this.reviveButton.disabled = false;
+            this.reviveButton.textContent = 'Watch Ad to Continue';
+            alert('Ad not available. Try restarting the game.');
+        }
+    }
+    
+    revivePlayer() {
+        this.revivesUsed++;
+        this.gameState = 'playing';
+        this.gameOverScreen.classList.add('hidden');
+        
+        // Move dino to a safe position and clear nearby obstacles
+        this.dino.y = this.groundY - this.dino.height;
+        this.dino.isJumping = false;
+        this.dino.jumpSpeed = 0;
+        
+        // Remove obstacles that are too close to give player a chance
+        this.obstacles = this.obstacles.filter(obstacle => obstacle.x > this.dino.x + 200);
+        
+        // Reset button state for potential future use
+        this.reviveButton.disabled = false;
+        this.reviveButton.textContent = 'Watch Ad to Continue';
+    }
+    
+    showNoReviveMessage() {
+        this.reviveOption.classList.add('hidden');
+        this.noReviveText.classList.remove('hidden');
     }
     
     handleJump() {
@@ -268,8 +388,18 @@ class DinosaurGame {
         // Update high score
         if (this.score > this.highScore) {
             this.highScore = this.score;
-            localStorage.setItem('dinoHighScore', this.highScore);
+            this.saveHighScore();
             this.updateHighScore();
+        }
+        
+        // Show appropriate revive option
+        if (this.crazyGamesInitialized && this.revivesUsed < this.maxRevives) {
+            this.reviveOption.classList.remove('hidden');
+            this.noReviveText.classList.add('hidden');
+            this.reviveButton.disabled = false;
+            this.reviveButton.textContent = `Watch Ad to Continue (${this.maxRevives - this.revivesUsed} left)`;
+        } else {
+            this.showNoReviveMessage();
         }
     }
     
@@ -284,6 +414,15 @@ class DinosaurGame {
         this.dino.y = this.groundY - this.dino.height;
         this.dino.isJumping = false;
         this.dino.jumpSpeed = 0;
+        
+        // Reset revive counter for new game
+        this.revivesUsed = 0;
+        
+        // Reset UI state
+        this.reviveOption.classList.remove('hidden');
+        this.noReviveText.classList.add('hidden');
+        this.reviveButton.disabled = false;
+        this.reviveButton.textContent = 'Watch Ad to Continue';
     }
     
     updateScore() {

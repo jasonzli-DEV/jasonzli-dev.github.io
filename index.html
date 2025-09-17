@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dinosaur Game</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://sdk.crazygames.com/crazygames-sdk-v3.js"></script>
 </head>
 <body>
     <div class="game-container">
@@ -23,7 +24,11 @@
             
             <div id="gameOverScreen" class="game-over hidden">
                 <h2>Game Over</h2>
-                <p>Press SPACE to restart</p>
+                <div id="reviveOption" class="revive-option">
+                    <button id="reviveButton" class="revive-button">Watch Ad to Continue</button>
+                    <p class="revive-text">Or press SPACE to restart</p>
+                </div>
+                <p id="noReviveText" class="hidden">Press SPACE to restart</p>
             </div>
             
             <div id="startScreen" class="start-screen">
