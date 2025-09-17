@@ -30,7 +30,7 @@ class DinosaurGame {
             isJumping: false,
             jumpSpeed: 0,
             gravity: 1.2,
-            maxJumpHeight: 150
+            maxJumpHeight: 200
         };
         
         // Obstacles
@@ -117,7 +117,7 @@ class DinosaurGame {
     jump() {
         if (!this.dino.isJumping) {
             this.dino.isJumping = true;
-            this.dino.jumpSpeed = -18;
+            this.dino.jumpSpeed = -22;
         }
     }
     
@@ -146,8 +146,8 @@ class DinosaurGame {
         // Determine available obstacle types based on score
         let obstacleTypes = ['cactus'];
         
-        // Birds only start appearing after score reaches 200
-        if (this.score >= 200) {
+        // Birds only start appearing after score reaches 1000
+        if (this.score >= 1000) {
             obstacleTypes.push('bird');
         }
         
@@ -155,9 +155,9 @@ class DinosaurGame {
         
         let obstacle;
         if (type === 'cactus') {
-            // Vary cactus height and width for more randomness
+            // Vary cactus height and width for more randomness - made taller
             const width = 15 + Math.random() * 15; // 15-30px width
-            const height = 25 + Math.random() * 20; // 25-45px height
+            const height = 40 + Math.random() * 30; // 40-70px height (increased from 25-45px)
             obstacle = {
                 x: this.canvas.width,
                 y: this.groundY - height,
@@ -166,9 +166,9 @@ class DinosaurGame {
                 type: 'cactus'
             };
         } else {
-            // Bird obstacle - flies at various heights
+            // Bird obstacle - flies at various heights (increased height range)
             const birdHeight = 15 + Math.random() * 10; // 15-25px height
-            const flyHeight = 20 + Math.random() * 60; // 20-80px above ground
+            const flyHeight = 30 + Math.random() * 100; // 30-130px above ground (increased from 20-80px)
             obstacle = {
                 x: this.canvas.width,
                 y: this.groundY - this.dino.height - flyHeight,
@@ -182,11 +182,17 @@ class DinosaurGame {
     }
     
     updateObstacles() {
-        // Create new obstacles with more frequent timing
+        // Create new obstacles with progressive difficulty - obstacles spawn closer together as score increases
         this.obstacleTimer++;
-        // Reduced randomness in obstacle spacing for more frequent obstacles (50-300px apart)
-        const minDistance = 50 + Math.random() * 50; // 50-100px
-        const maxDistance = 150 + Math.random() * 150; // 150-300px
+        
+        // Calculate progressive difficulty: obstacles get closer together as score increases
+        const progressionFactor = Math.min(this.score / 2000, 0.7); // Max 70% reduction at 2000 points
+        const baseMinDistance = 50 + Math.random() * 50; // 50-100px
+        const baseMaxDistance = 150 + Math.random() * 150; // 150-300px
+        
+        // Reduce distances based on progression
+        const minDistance = baseMinDistance * (1 - progressionFactor);
+        const maxDistance = baseMaxDistance * (1 - progressionFactor);
         const nextObstacleDistance = minDistance + Math.random() * (maxDistance - minDistance);
         
         if (this.obstacleTimer > nextObstacleDistance) {
@@ -224,11 +230,14 @@ class DinosaurGame {
     }
     
     updateClouds() {
-        for (let cloud of this.clouds) {
-            cloud.x -= cloud.speed;
-            if (cloud.x + cloud.width < 0) {
-                cloud.x = this.canvas.width;
-                cloud.y = 20 + Math.random() * 50;
+        // Only update clouds if game is not over (freeze clouds during game over)
+        if (this.gameState !== 'gameOver') {
+            for (let cloud of this.clouds) {
+                cloud.x -= cloud.speed;
+                if (cloud.x + cloud.width < 0) {
+                    cloud.x = this.canvas.width;
+                    cloud.y = 20 + Math.random() * 50;
+                }
             }
         }
     }
@@ -265,9 +274,9 @@ class DinosaurGame {
     }
     
     resetGame() {
-        this.gameState = 'start';
+        this.gameState = 'playing'; // Go directly to playing instead of start screen
         this.gameOverScreen.classList.add('hidden');
-        this.startScreen.classList.remove('hidden');
+        this.startScreen.classList.add('hidden'); // Ensure start screen is hidden
         this.score = 0;
         this.gameSpeed = 6;
         this.obstacles = [];

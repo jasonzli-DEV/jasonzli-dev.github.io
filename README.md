@@ -4,23 +4,30 @@ A recreation of the Google Chrome "No Internet" dinosaur game (T-Rex Runner) bui
 
 ## Features
 
-- **Classic Gameplay**: Jump over cacti obstacles to survive as long as possible
+- **Enhanced Gameplay**: Jump higher over taller obstacles with improved dinosaur jumping mechanics
+- **Dynamic Obstacles**: Cacti are now taller (40-70px) and flying birds appear at higher altitudes (30-130px above ground)
+- **Progressive Challenge**: Obstacles spawn closer together as your score increases, making the game increasingly difficult
+- **Bird Obstacles**: Flying birds start appearing at 1000 points (increased challenge threshold)
 - **Scoring System**: Earn points for each obstacle avoided, with persistent high score tracking
 - **Progressive Difficulty**: Game speed increases as your score gets higher
+- **Smooth Game Flow**: Single press restart from game over - no double press needed
+- **Frozen Game Over**: Clouds freeze during game over state for better visual feedback
 - **Responsive Design**: Works on desktop and mobile devices
-- **Authentic Look**: Pixel-perfect recreation of the original Chrome game aesthetic
+- **Authentic Look**: Enhanced recreation of the original Chrome game aesthetic
 
 ## How to Play
 
 1. Open `index.html` in your web browser
 2. Press **SPACE** or **↑** (up arrow) to start the game
-3. Press **SPACE** or **↑** to make the dinosaur jump over obstacles
-4. Avoid hitting the cacti to keep playing
+3. Press **SPACE** or **↑** to make the dinosaur jump over obstacles (enhanced jump height!)
+4. Avoid hitting the cacti and flying birds to keep playing
+5. Birds start appearing at 1000 points for added challenge
+6. Obstacles get closer together as your score increases
 5. Try to beat your high score!
 
 ## Game Controls
 
-- **SPACE** or **↑**: Jump / Start game / Restart after game over
+- **SPACE** or **↑**: Jump (enhanced height) / Start game / Instant restart after game over
 - **Click**: Alternative way to jump (mouse/touch)
 
 ## Technical Details
